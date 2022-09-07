@@ -1,4 +1,3 @@
-import uvicorn
 from fastapi import FastAPI
 from typing import Union
 from fastapi import FastAPI, Response
@@ -43,5 +42,5 @@ def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserP
         }
     return res
 
-if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8088)
+#if __name__ == "__main__":
+#    uvicorn.run(app, host="0.0.0.0", port=8088)
