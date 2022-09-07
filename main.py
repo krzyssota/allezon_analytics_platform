@@ -24,6 +24,11 @@ x.start()
 x.join()
 """
 
+@app.get("/ping")
+async def ping():
+    return Response(status_code=200)
+
+
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
     logger.warning(f"UserTag came {user_tag}")
