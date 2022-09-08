@@ -1,5 +1,7 @@
 import json
 import logging
+from typing import Optional
+
 import aerospike
 from snappy import snappy
 
@@ -62,22 +64,15 @@ class MyAerospikeClient:
 
         self.put_user_profile(user_profile)
 
-        # encoded: str = json.dumps(user_tag_json)
-        # compressed = snappy.compress(encoded)
-
-        # self.client.write(compressed)
-
-        # TODO wymyslic jak przechowywać (UserResult = (cookie:str, views, buys) ?)
-        # dokończyć add_tag =
-        # napisać get_user_profile
-
-    def get_user_profile(self, cookie: str) -> UserProfile:
+    def get_user_profile(self, cookie: str) -> Optional[UserProfile]:
         try:
             key = (self.namespace, self.set, cookie)
             (key, meta, bins_json) = self.client.get(key)
-            compressed = bins_json["compressed_profile"]
+            compressed = bins_json["compressed"]
             decompressed = snappy.decompress(compressed).decode("utf-8")
             return deserialize_user_profile(decompressed)
+        except aerospike.exception.RecordNotFound:
+            return None  # new user
         except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
@@ -86,6 +81,6 @@ class MyAerospikeClient:
             key = (self.namespace, self.set, user_profile.cookie)
             ser_user_profile = user_profile.serialize_user_profile()
             compressed = snappy.compress(ser_user_profile)
-            self.client.put(key, {"compressed_profile": compressed})
+            self.client.put(key, {"compressed": compressed})
         except aerospike.exception.AerospikeError as e:
             print(f"error writing user_profile(%s) %s", user_profile.cookie, e)
