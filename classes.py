@@ -1,8 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
-from typing import List
-
+from typing import List, Any
 from typing_extensions import TypedDict
 
 import pydantic
@@ -46,8 +45,8 @@ class UserProfile(BaseModel):
     buys: List[UserTag]
     views: List[UserTag]
 
-    def __init__(self, d: dict):
-        self.cookie = d["cookie"]
-        self.buys = d["buys"]
-        self.views = d["views"]
+
+
+
+
 

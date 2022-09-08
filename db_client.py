@@ -46,24 +46,10 @@ class MyAerospikeClient:
             return False
 
     def add_tag(self, user_tag: UserTag):
-        user_tag_json = {
-            'time': user_tag.time,
-            'cookie': user_tag.cookie,
-            'country': user_tag.country,
-            'device': user_tag.device,
-            'action': user_tag.action,
-            'origin': user_tag.origin,
-            'product_info': {
-                'product_id': user_tag.product_info["product_id"],
-                'brand_id': user_tag.product_info["brand_id"],
-                'category_id': user_tag.product_info["category_id"],
-                'price': user_tag.product_info["price"]
-            }
-        }
 
         user_profile = self.get_user_profile(user_tag.cookie)
         if not user_profile:
-            user_profile = UserProfile({"cookie": user_tag.cookie, "buys": [], "views": []})
+            user_profile = UserProfile.parse_obj({"cookie": user_tag.cookie, "buys": [], "views": []})
 
         if user_tag.action == Action.VIEW:
             if len(user_profile.views) == MAX_TAG_NUMBER:
@@ -90,8 +76,9 @@ class MyAerospikeClient:
             key = (self.namespace, self.set, cookie)
             (key, meta, bins_json) = self.client.get(key)
             compressed = bins_json["compressed_profile"]
-            uncompressed = snappy.uncompress(compressed)
-            return UserProfile(uncompressed)
+            decompressed = snappy.decompress(compressed)
+            user_profile_json = json.loads(decompressed)
+            return UserProfile.parse_obj(user_profile_json)
         except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
