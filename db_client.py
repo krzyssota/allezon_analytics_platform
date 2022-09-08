@@ -3,7 +3,7 @@ import logging
 import aerospike
 import snappy
 
-from classes import UserTag, UserProfile, Action
+from classes import UserTag, UserProfile, Action, deserialize_user_profile
 
 MAX_TAG_NUMBER = 200
 
@@ -76,17 +76,16 @@ class MyAerospikeClient:
             key = (self.namespace, self.set, cookie)
             (key, meta, bins_json) = self.client.get(key)
             compressed = bins_json["compressed_profile"]
-            decompressed = snappy.decompress(compressed)
-            user_profile_json = json.loads(decompressed)
-            return UserProfile.parse_obj(user_profile_json)
+            decompressed = snappy.decompress(compressed).decode("utf-8")
+            return deserialize_user_profile(decompressed)
         except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
     def put_user_profile(self, user_profile: UserProfile):
         try:
             key = (self.namespace, self.set, user_profile.cookie)
-            user_profile_json = json.dumps(user_profile.__dict__)
-            compressed = snappy.compress(user_profile_json)
+            ser_user_profile = user_profile.serialize_user_profile()
+            compressed = snappy.compress(ser_user_profile)
             self.client.put(key, {"compressed_profile": compressed})
         except aerospike.exception.AerospikeError as e:
             print(f"error writing user_profile(%s) %s", user_profile.cookie, e)
