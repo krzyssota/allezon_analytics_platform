@@ -89,7 +89,7 @@ class MyAerospikeClient:
             compressed = bins_json["compressed_profile"]
             uncompressed = snappy.uncompress(compressed)
             return UserProfile(uncompressed)
-        except aerospike.exception.Exception as e:
+        except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
     def put_user_profile(self, user_profile: UserProfile):
@@ -98,5 +98,5 @@ class MyAerospikeClient:
             user_profile_json = json.dumps(user_profile.__dict__)
             compressed = snappy.compress(user_profile_json)
             self.client.put(key, {"compressed_profile": compressed})
-        except aerospike.exception.Exception as e:
+        except aerospike.exception.AerospikeError as e:
             print(f"error writing user_profile(%s) %s", user_profile.cookie, e)
