@@ -41,7 +41,13 @@ class UserTag(BaseModel):
     origin: str
     product_info: ProductInfo
 
-class UserProfileResult(BaseModel):
+class UserProfile(BaseModel):
     cookie: str
     buys: List[UserTag]
     views: List[UserTag]
+
+    def __init__(self, d: dict):
+        self.cookie = d["cookie"]
+        self.buys = d["buys"]
+        self.views = d["views"]
+
