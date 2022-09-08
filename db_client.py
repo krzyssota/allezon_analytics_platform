@@ -3,6 +3,7 @@ import aerospike
 
 class MyAerospikeClient:
     namespace = "mimuw"
+    set = "tags"
     config = {
         'hosts': [
             ('10.112.109.101', 3000),
@@ -29,7 +30,8 @@ class MyAerospikeClient:
 
     def delete_key(self, key: str) -> bool:
         try:
-            self.client.remove(key)
+
+            self.client.remove((self.namespace, self.set, key))
             return True
         except aerospike.exception.RecordError:
             self.logger.error("key to delete not found: %s", key)
