@@ -44,11 +44,10 @@ async def delete_key(key: str):
         code = 400
     return Response(status_code=code)
 
-@app.get("/get_user_profile/{cookie}")
+@app.get("/log_user_profile/{cookie}")
 async def get_user_profile(cookie: str):
     user_profile = db_client.get_user_profile(cookie)
-    logger.debug("User profile ", user_profile)
-    logger.error("User profile e", user_profile)
+    logger.error(f"User profile {user_profile}")
     return Response(status_code=200)
 
 ###    --------------------------    ###
