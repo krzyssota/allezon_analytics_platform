@@ -6,9 +6,12 @@ from classes import UserTag, UserProfileResult
 import threading
 import time
 
+from db_client import MyAerospikeClient
+
 app = FastAPI()
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
+db_client = MyAerospikeClient()
 
 """"
 def thread_function(name):
@@ -26,6 +29,11 @@ x.join()
 
 @app.get("/ping")
 async def ping():
+    return Response(status_code=200)
+
+@app.get("/db_conn")
+async def db_conn():
+    db_client.log_all_records()
     return Response(status_code=200)
 
 
