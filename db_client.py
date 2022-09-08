@@ -10,7 +10,7 @@ class MyAerospikeClient:
             ('10.112.109.102', 3000)
         ],
         'policies': {
-            'timeout': 1000  # milliseconds
+            'timeout': 5000  # milliseconds
         }
     }
     logger = logging.getLogger()
