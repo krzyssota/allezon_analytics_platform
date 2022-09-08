@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from typing import Union
 from fastapi import FastAPI, Response
 import logging
-from classes import UserTag, UserProfileResult
+from classes import UserTag, UserProfile
 import threading
 import time
 
@@ -61,7 +61,7 @@ async def user_tags(user_tag: UserTag):
 
 
 @app.post("/user_profiles/{cookie}")
-async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfileResult, None], limit: int = 200):
+async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None], limit: int = 200):
     user_profile = db_client.get_user_profile(cookie)
     if user_profile:
         return user_profile
