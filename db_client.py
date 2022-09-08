@@ -60,7 +60,10 @@ class MyAerospikeClient:
                 'price': user_tag.product_info["price"]
             }
         }
+
         user_profile = self.get_user_profile(user_tag.cookie)
+        if not user_profile:
+            user_profile = UserProfile({"cookie": user_tag.cookie, "buys": [], "views": []})
 
         if user_tag.action == Action.VIEW:
             if len(user_profile.views) == MAX_TAG_NUMBER:
