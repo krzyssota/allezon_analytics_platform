@@ -21,10 +21,17 @@ class MyAerospikeClient:
     def log_all_records(self):
         def print_result(record_tuple):
             key, metadata, record = record_tuple
-            print(key, metadata, record)
-            self.logger.info("scan result: %s %s %s", key, metadata, record)
+            print("print scan result %s %s %s", key, metadata, record)
+            self.logger.info("log scan result: %s %s %s", key, metadata, record)
 
         scan = self.client.scan(self.namespace)
         scan.foreach(print_result)
 
+    def delete_key(self, key: str) -> bool:
+        try:
+            self.client.remove(key)
+            return True
+        except aerospike.exception.RecordError:
+            self.logger.error("key to delete not found: %s", key)
+            return False
 

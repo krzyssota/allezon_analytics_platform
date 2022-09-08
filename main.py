@@ -36,6 +36,13 @@ async def db_conn():
     db_client.log_all_records()
     return Response(status_code=200)
 
+@app.get("/delete_key/{key}")
+async def delete_key(key: str):
+    if db_client.delete_key(key):
+        code = 200
+    else:
+        code = 400
+    return Response(status_code=code)
 
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
@@ -44,7 +51,7 @@ async def user_tags(user_tag: UserTag):
 
 
 @app.post("/user_profiles/{cookie}")
-def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfileResult, None], limit: int = 200):
+async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfileResult, None], limit: int = 200):
     if user_profile_result:
         res = user_profile_result
     else:
