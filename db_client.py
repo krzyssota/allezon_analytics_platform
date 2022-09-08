@@ -1,7 +1,7 @@
 import json
 import logging
 import aerospike
-import snappy
+from snappy import snappy
 
 from classes import UserTag, UserProfile, Action, deserialize_user_profile
 
