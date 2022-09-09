@@ -65,10 +65,10 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
     if user_profile:
         return user_profile
     elif user_profile_result:
-        logger.warning(f"no UserProfile", user_profile.cookie)
+        logger.warning(f"no UserProfile {user_profile.cookie}")
         return user_profile_result
     else:
-        logger.warning(f"no UserProfile", user_profile.cookie)
+        logger.warning(f"no UserProfile {user_profile.cookie}")
         return {
             "cookie": cookie,
             "views": [],
