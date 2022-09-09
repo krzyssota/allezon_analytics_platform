@@ -5,7 +5,7 @@ import aerospike
 from snappy import snappy
 
 from classes import UserTag, UserProfile, Action
-from serde import deserialize_user_profile, serialize_user_profile
+from serde import deserialize_user_profile, serialize_user_profile, serialize_tags, deserialize_tags
 
 MAX_TAG_NUMBER = 200
 
@@ -72,9 +72,11 @@ class MyAerospikeClient:
         try:
             key = (self.namespace, self.set, cookie)
             (key, meta, bins_json) = self.client.get(key)
-            compressed = bins_json["compressed"]
-            decompressed = snappy.decompress(compressed).decode("utf-8")
-            return deserialize_user_profile(decompressed)
+            ser_bs = snappy.decompress(bins_json["buys"]).decode("utf-8")
+            ser_vs = snappy.decompress(bins_json["views"]).decode("utf-8")
+            bs = deserialize_tags(ser_bs)
+            vs = deserialize_tags(ser_vs)
+            return UserProfile.parse_obj({"cookie": cookie, "buys": bs, "views": vs})
         except aerospike.exception.RecordNotFound:
             return None  # new user
         except aerospike.exception.AerospikeError as e:
@@ -83,9 +85,11 @@ class MyAerospikeClient:
     def put_user_profile(self, user_profile: UserProfile):
         try:
             key = (self.namespace, self.set, user_profile.cookie)
-            ser_user_profile = serialize_user_profile(user_profile)
-            compressed = snappy.compress(ser_user_profile)
-            self.client.put(key, {"compressed": compressed})
+            ser_bs = serialize_tags(user_profile.buys)
+            ser_vs = serialize_tags(user_profile.views)
+            comp_bs = snappy.compress(ser_bs)
+            comp_vs = snappy.compress(ser_vs)
+            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs})
         except aerospike.exception.AerospikeError as e:
             print(f"error writing user_profile(%s) %s", user_profile.cookie, e)
 
