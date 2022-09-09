@@ -1,13 +1,9 @@
 from queue import Queue
-
-from fastapi import FastAPI
 from typing import Union
 from fastapi import FastAPI, Response
 import logging
 from classes import UserTag, UserProfile
 from threading import Thread
-import time
-
 from db_client import MyAerospikeClient
 
 WORKER_NUMBER = 4
@@ -31,18 +27,17 @@ class Worker(Thread):
             self.queue.task_done()
 
 
-if __name__ == '__main__':
-    app = FastAPI()
-    logger = logging.getLogger()
-    logger.setLevel(logging.DEBUG)
-    debug_client = MyAerospikeClient()
-    clients = [MyAerospikeClient() for _ in range(WORKER_NUMBER)]
-    queue = Queue()
-    serve = True
-    for i in range(WORKER_NUMBER):
-        w = Worker(queue, clients[i])
-        w.daemon = True
-        w.start()
+app = FastAPI()
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+debug_client = MyAerospikeClient()
+clients = [MyAerospikeClient() for _ in range(WORKER_NUMBER)]
+queue = Queue()
+serve = True
+for i in range(WORKER_NUMBER):
+    w = Worker(queue, clients[i])
+    w.daemon = True
+    w.start()
 
 @app.on_event("shutdown")
 def shutdown():
