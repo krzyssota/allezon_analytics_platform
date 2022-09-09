@@ -47,9 +47,28 @@ def shutdown():
         if c:
             c.close()
 
+@app.post("/user_tags")
+async def user_tags(user_tag: UserTag):
+    global queue
+    queue.put(user_tag)
+    return Response(status_code=204)
 
 
-
+@app.post("/user_profiles/{cookie}")
+async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None], limit: int = 200):
+    user_profile = debug_client.get_user_profile(cookie)
+    if user_profile:
+        return user_profile
+    elif user_profile_result:
+        logger.warning(f"no UserProfile {user_profile.cookie}")
+        return user_profile_result
+    else:
+        logger.warning(f"no UserProfile {user_profile.cookie}")
+        return {
+            "cookie": cookie,
+            "views": [],
+            "buys": [],
+        }
 
 ###        DEBUG ENDPOINTS        ###
 @app.get("/ping")
@@ -81,31 +100,3 @@ async def delete_all_records():
     return Response(status_code=200)
 
 ###    --------------------------    ###
-
-
-
-@app.post("/user_tags")
-async def user_tags(user_tag: UserTag):
-    global queue
-    queue.put(user_tag)
-    return Response(status_code=204)
-
-
-@app.post("/user_profiles/{cookie}")
-async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None], limit: int = 200):
-    user_profile = debug_client.get_user_profile(cookie)
-    if user_profile:
-        return user_profile
-    elif user_profile_result:
-        logger.warning(f"no UserProfile {user_profile.cookie}")
-        return user_profile_result
-    else:
-        logger.warning(f"no UserProfile {user_profile.cookie}")
-        return {
-            "cookie": cookie,
-            "views": [],
-            "buys": [],
-        }
-
-#if __name__ == "__main__":
-#    uvicorn.run(app, host="0.0.0.0", port=8088)

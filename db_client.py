@@ -5,7 +5,7 @@ import aerospike
 from snappy import snappy
 
 from classes import UserTag, UserProfile, Action
-from serde import deserialize_user_profile
+from serde import deserialize_user_profile, serialize_user_profile
 
 MAX_TAG_NUMBER = 200
 
@@ -83,7 +83,7 @@ class MyAerospikeClient:
     def put_user_profile(self, user_profile: UserProfile):
         try:
             key = (self.namespace, self.set, user_profile.cookie)
-            ser_user_profile = user_profile.serialize_user_profile()
+            ser_user_profile = serialize_user_profile(user_profile)
             compressed = snappy.compress(ser_user_profile)
             self.client.put(key, {"compressed": compressed})
         except aerospike.exception.AerospikeError as e:
