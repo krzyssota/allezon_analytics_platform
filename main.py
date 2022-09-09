@@ -1,31 +1,61 @@
+from queue import Queue
+
 from fastapi import FastAPI
 from typing import Union
 from fastapi import FastAPI, Response
 import logging
 from classes import UserTag, UserProfile
-import threading
+from threading import Thread
 import time
 
 from db_client import MyAerospikeClient
 
-app = FastAPI()
-logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-db_client = MyAerospikeClient()
+WORKER_NUMBER = 4
+serve = False
+clients = []
+queue: Queue
+class Worker(Thread):
+    queue: Queue
+    client: MyAerospikeClient
 
-""""
-def thread_function(name):
-    logging.info("Thread %s: starting", name)
-    time.sleep(2)
-    logging.info("Thread %s: finishing", name)
+    def __init__(self, queue: Queue, client: MyAerospikeClient):
+        Thread.__init__(self)
+        self.queue = queue
+        self.client = client
+
+    def run(self):
+        global serve
+        while serve:
+            tag: UserTag = self.queue.get(block=True)
+            self.client.add_tag(tag)
+            self.queue.task_done()
 
 
-format = "%(asctime)s: %(message)s"
-logging.basicConfig(format=format, level=logging.INFO, datefmt="%H:%M:%S")
-x = threading.Thread(target=thread_function, args=(1,))
-x.start()
-x.join()
-"""
+if __name__ == '__main__':
+    app = FastAPI()
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    debug_client = MyAerospikeClient()
+    clients = [MyAerospikeClient() for _ in range(WORKER_NUMBER)]
+    queue = Queue()
+    serve = True
+    for i in range(WORKER_NUMBER):
+        w = Worker(queue, clients[i])
+        w.daemon = True
+        w.start()
+
+@app.on_event("shutdown")
+def shutdown():
+    global serve
+    serve = False
+    for c in clients:
+        if c:
+            c.close()
+
+
+
+
+
 ###        DEBUG ENDPOINTS        ###
 @app.get("/ping")
 async def ping():
@@ -33,12 +63,12 @@ async def ping():
 
 @app.get("/log_all_records")
 async def log_all_records():
-    db_client.log_all_records()
+    debug_client.log_all_records()
     return Response(status_code=200)
 
 @app.get("/delete_key/{key}")
 async def delete_key(key: str):
-    if db_client.delete_key(key):
+    if debug_client.delete_key(key):
         code = 200
     else:
         code = 400
@@ -46,22 +76,29 @@ async def delete_key(key: str):
 
 @app.get("/log_user_profile/{cookie}")
 async def get_user_profile(cookie: str):
-    user_profile = db_client.get_user_profile(cookie)
+    user_profile = debug_client.get_user_profile(cookie)
     logger.error(f"User profile {user_profile}")
+    return Response(status_code=200)
+
+@app.get("/delete_all_records")
+async def delete_all_records():
+    debug_client.delete_all_records()
     return Response(status_code=200)
 
 ###    --------------------------    ###
 
+
+
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
-    logger.warning(f"UserTag came {user_tag}")
-    db_client.add_tag(user_tag)
+    global queue
+    queue.put(user_tag)
     return Response(status_code=204)
 
 
 @app.post("/user_profiles/{cookie}")
 async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None], limit: int = 200):
-    user_profile = db_client.get_user_profile(cookie)
+    user_profile = debug_client.get_user_profile(cookie)
     if user_profile:
         return user_profile
     elif user_profile_result:
