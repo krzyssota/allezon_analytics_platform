@@ -2,15 +2,15 @@ from classes import UserTag, UserProfile
 from typing import List
 
 
-def serialize_tag(self) -> str:
-    res1 = f"{self.time}|{self.cookie}|{self.country}|{self.device.name}|{self.action.name}|{self.origin}|"
-    res2 = self.product_info["product_id"] + "|" + self.product_info["brand_id"] + "|" + self.product_info[
-        "category_id"] + "|" + str(self.product_info["price"])
+def serialize_tag(tag: UserTag) -> str:
+    res1 = f"{tag.time}|{tag.cookie}|{tag.country}|{tag.device.name}|{tag.action.name}|{tag.origin}|"
+    res2 = tag.product_info["product_id"] + "|" + tag.product_info["brand_id"] + "|" + tag.product_info[
+        "category_id"] + "|" + str(tag.product_info["price"])
     return res1 + res2
 
 
 def serialize_tags(tags: List[UserTag]) -> str:
-    return "^".join(list(map(lambda t: t.serialize_tag(), tags)))
+    return "^".join(list(map(lambda t: serialize_tag(t), tags)))
 
 
 def deserialize_tags(ser_tags: str) -> List[UserTag]:
@@ -30,8 +30,8 @@ def deserialize_tag(ser_tag: str) -> UserTag:
     return UserTag.parse_obj(ut_obj)
 
 
-def serialize_user_profile(self) -> str:
-    return self.cookie + "@" + serialize_tags(self.buys) + "@" + serialize_tags(self.views)
+def serialize_user_profile(user_profile: UserProfile) -> str:
+    return user_profile.cookie + "@" + serialize_tags(user_profile.buys) + "@" + serialize_tags(user_profile.views)
 
 
 def deserialize_user_profile(ser_user_profile: str) -> UserProfile:
