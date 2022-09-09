@@ -32,8 +32,10 @@ class MyAerospikeClient:
     def log_all_records(self):
         def print_result(record_tuple):
             key, metadata, record = record_tuple
-            print("print scan result %s %s %s", key, metadata, record)
-            self.logger.info("log scan result: %s %s %s", key, metadata, record)
+            compressed = record["compressed"]
+            decompressed = snappy.decompress(compressed).decode("utf-8")
+            user_profile = deserialize_user_profile(decompressed)
+            print(f"print scan result {user_profile}")
 
         scan = self.client.scan(self.namespace)
         scan.foreach(print_result)
