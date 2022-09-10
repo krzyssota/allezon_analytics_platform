@@ -79,14 +79,14 @@ class MyAerospikeClient:
             t0 = time.time()
             (key, meta, bins_json) = self.client.get(key)
             t1 = time.time()
-            print(f"get_user_profile({i}) client.get took {t1 - t0}s")
+            #print(f"get_user_profile({i}) client.get took {t1 - t0}s")
             ser_bs = snappy.decompress(bins_json["buys"]).decode("utf-8")
             ser_vs = snappy.decompress(bins_json["views"]).decode("utf-8")
             bs = deserialize_tags(ser_bs)
             vs = deserialize_tags(ser_vs)
             res = UserProfile.parse_obj({"cookie": cookie, "buys": bs, "views": vs})
             t2 = time.time()
-            print(f"get_user_profile({i}) computation took {t2 - t1}s")
+            #print(f"get_user_profile({i}) computation took {t2 - t1}s")
             return res
         except aerospike.exception.RecordNotFound:
             return None  # new user
@@ -102,11 +102,11 @@ class MyAerospikeClient:
             comp_bs = snappy.compress(ser_bs)
             comp_vs = snappy.compress(ser_vs)
             t1 = time.time()
-            print(f"put_user_profile({i}) computation took {t1 - t0}s")
+            #print(f"put_user_profile({i}) computation took {t1 - t0}s")
             self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs},
                             policy={"gen": aerospike.POLICY_GEN_EQ})
             t2 = time.time()
-            print(f"put_user_profile({i}) client.put took {t2 - t1}s")
+            #print(f"put_user_profile({i}) client.put took {t2 - t1}s")
             return True
         except aerospike.exception.RecordGenerationError:
             print(f"{i + 1}. generation error while trying to write user profile for: {user_profile.cookie}")
