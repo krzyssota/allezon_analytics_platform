@@ -47,7 +47,6 @@ class MyAerospikeClient:
 
     def delete_key(self, key: str) -> bool:
         try:
-
             self.client.remove((self.namespace, self.set, key))
             return True
         except aerospike.exception.RecordError:
@@ -57,7 +56,7 @@ class MyAerospikeClient:
     def add_tag(self, user_tag: UserTag):
         for i in range(3):
             key = (self.namespace, self.set, user_tag.cookie)
-            user_profile = self.get_user_profile(key, user_tag.cookie, i)
+            user_profile = self.get_user_profile(user_tag.cookie, i)
             if not user_profile:
                 user_profile = UserProfile.parse_obj({"cookie": user_tag.cookie, "buys": [], "views": []})
 
@@ -74,8 +73,9 @@ class MyAerospikeClient:
             if success:
                 return
 
-    def get_user_profile(self, key: (str, str, str), cookie: str, i: int) -> Optional[UserProfile]:
+    def get_user_profile(self, cookie: str, i: int) -> Optional[UserProfile]:
         try:
+            key = (self.namespace, self.set, cookie)
             t0 = time.time()
             (key, meta, bins_json) = self.client.get(key)
             t1 = time.time()
@@ -93,8 +93,9 @@ class MyAerospikeClient:
         except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
-    def put_user_profile(self, key: (str, str, str), user_profile: UserProfile, i: int) -> bool:
+    def put_user_profile(self, user_profile: UserProfile, i: int) -> bool:
         try:
+            key = (self.namespace, self.set, user_profile.cookie)
             t0 = time.time()
             ser_bs = serialize_tags(user_profile.buys)
             ser_vs = serialize_tags(user_profile.views)

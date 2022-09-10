@@ -56,7 +56,7 @@ async def user_tags(user_tag: UserTag):
 
 @app.post("/user_profiles/{cookie}")
 async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None], limit: int = 200):
-    user_profile = debug_client.get_user_profile(cookie)
+    user_profile = debug_client.get_user_profile(cookie, -1)
     if user_profile:
         return user_profile
     elif user_profile_result:
