@@ -15,8 +15,10 @@ class MyAerospikeClient:
     set = "tags"
     config = {
         'hosts': [
-            ('10.112.109.101', 3000),
-            ('10.112.109.102', 3000)
+            ('10.112.109.103', 3000),
+            ('10.112.109.104', 3000),
+            ('10.112.109.105', 3000),
+            ('10.112.109.106', 3000)
         ],
         'policies': {
             'timeout': 5000  # milliseconds
@@ -68,11 +70,7 @@ class MyAerospikeClient:
                     user_profile.buys.pop(0)
                 user_profile.buys.append(user_tag)
 
-            t2 = time.time()
-            print(f"get_user_profile took {t1 - t0}s")
             success = self.put_user_profile(key, user_profile, i)
-            t3 = time.time()
-
             if success:
                 return
 
