@@ -60,24 +60,18 @@ async def user_tags(user_tag: UserTag):
 
 @app.post("/user_profiles/{cookie}")
 async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None, limit: int = 200):
-    def filter_tags(tags, time_range):
+
+
+    user_profile = debug_client.get_user_profile(cookie, -1)
+    if user_profile:
         time_start = time_range.split("_")[0]
         time_end = time_range.split("_")[1]
         date_format = "%Y-%m-%dT%H:%M:%S.%f"
         ts = utc.localize(datetime.strptime(time_start, date_format))
         te = utc.localize(datetime.strptime(time_end, date_format))
-        print("halko ", time_range, "ts ", ts, "te ", te, "type ts", type(ts))
-        if len(tags) > 0:
-            print("tags[0].time", tags[0].time, "type tag.time", type(tags[0].time))
-        logger.error(f"halko {time_range} ts {ts} te {te}")
+        bs = [tag for tag in user_profile.buys if ts <= tag.time < te]
+        vs = [tag for tag in user_profile.views if ts <= tag.time < te]
 
-
-        return [t for t in tags if ts <= t.time < te]
-
-    user_profile = debug_client.get_user_profile(cookie, -1)
-    if user_profile:
-        bs = filter_tags(user_profile.buys, time_range)
-        vs = filter_tags(user_profile.views, time_range)
         user_profile.views = vs[:limit]
         user_profile.buys = bs[:limit]
         return user_profile
