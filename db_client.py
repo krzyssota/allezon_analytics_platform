@@ -69,9 +69,10 @@ class MyAerospikeClient:
                     user_profile.buys.pop(0)
                 user_profile.buys.append(user_tag)
 
-            success = self.put_user_profile(user_profile, i)
-            if success:
+            if self.put_user_profile(user_profile, i)
                 return
+            else:
+                time.sleep(0.01)
 
     def get_user_profile(self, cookie: str, i: int) -> Optional[UserProfile]:
         try:
