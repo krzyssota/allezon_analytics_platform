@@ -92,7 +92,7 @@ class MyAerospikeClient:
             #print(f"get_user_profile({i}) computation took {t2 - t1}s")
             return (res, meta["gen"])
         except aerospike.exception.RecordNotFound:
-            return None  # new user
+            return (None, 1)  # new user
         except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
