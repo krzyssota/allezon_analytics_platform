@@ -10,7 +10,7 @@ from classes import UserTag, UserProfile
 from threading import Thread
 from db_client import MyAerospikeClient
 
-WORKER_NUMBER = 2
+WORKER_NUMBER = 4
 serve = False
 clients = []
 queue: Queue
@@ -79,7 +79,7 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
         #logger.warning(f"no UserProfile {user_profile.cookie}")
         return user_profile_result
     else:
-        logger.warning(f"no UserProfile {user_profile.cookie}")
+        logger.warning(f"no UserProfile {cookie}")
         return {
             "cookie": cookie,
             "views": [],
