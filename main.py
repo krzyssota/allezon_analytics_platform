@@ -10,7 +10,7 @@ from classes import UserTag, UserProfile
 from threading import Thread
 from db_client import MyAerospikeClient
 
-WORKER_NUMBER = 4
+WORKER_NUMBER = 2
 serve = False
 clients = []
 queue: Queue
