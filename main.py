@@ -3,6 +3,9 @@ from queue import Queue
 from typing import Union
 from fastapi import FastAPI, Response
 import logging
+
+from pytz import utc
+
 from classes import UserTag, UserProfile
 from threading import Thread
 from db_client import MyAerospikeClient
@@ -61,15 +64,15 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
         time_start = time_range.split("_")[0]
         time_end = time_range.split("_")[1]
         date_format = "%Y-%m-%dT%H:%M:%S.%f"
-        ts = datetime.strptime(time_start, date_format)
-        te = datetime.strptime(time_end, date_format)
+        ts = utc.localize(datetime.strptime(time_start, date_format))
+        te = utc.localize(datetime.strptime(time_end, date_format))
         print("halko ", time_range, "ts ", ts, "te ", te, "type ts", type(ts))
         if len(tags) > 0:
             print("tags[0].time", tags[0].time, "type tag.time", type(tags[0].time))
         logger.error(f"halko {time_range} ts {ts} te {te}")
 
 
-        return [t for t in tags if ts <= t.time < te]
+        return [t for t in tags if ts <= utc.localize(t.time) < te]
 
     user_profile = debug_client.get_user_profile(cookie, -1)
     if user_profile:
