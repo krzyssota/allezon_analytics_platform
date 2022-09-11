@@ -72,7 +72,7 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
         logger.error(f"halko {time_range} ts {ts} te {te}")
 
 
-        return [t for t in tags if ts <= utc.localize(t.time) < te]
+        return [t for t in tags if ts <= t.time < te]
 
     user_profile = debug_client.get_user_profile(cookie, -1)
     if user_profile:
