@@ -64,6 +64,8 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
         ts = datetime.strptime(time_start, date_format)
         te = datetime.strptime(time_end, date_format)
         print("halko ", time_range, "ts ", ts, "te ", te)
+        logger.error(f"halko {time_range} ts {ts} te {te}")
+
 
         return [t for t in tags if ts <= t.time < te]
 
