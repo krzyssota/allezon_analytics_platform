@@ -63,7 +63,7 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
         date_format = "%Y-%m-%dT%H:%M:%S.%f"
         ts = datetime.strptime(time_start, date_format)
         te = datetime.strptime(time_end, date_format)
-        print("halko ", time_range, "ts ", ts, "te ", te)
+        print("halko ", time_range, "ts ", ts, "te ", te, "tags[0].time", tags[0].time, "type ts", type(ts), "type tag.time", type(tags[0].time))
         logger.error(f"halko {time_range} ts {ts} te {te}")
 
 
