@@ -58,7 +58,7 @@ class MyAerospikeClient:
     def add_tag(self, user_tag: UserTag):
         for i in range(3):
             key = (self.namespace, self.set, user_tag.cookie)
-            user_profile = self.get_user_profile(user_tag.cookie, i)
+            (user_profile, gen) = self.get_user_profile(user_tag.cookie, i)
             if not user_profile:
                 user_profile = UserProfile.parse_obj({"cookie": user_tag.cookie, "buys": [], "views": []})
 
@@ -71,12 +71,12 @@ class MyAerospikeClient:
                     user_profile.buys.pop(0)
                 user_profile.buys.append(user_tag)
 
-            if self.put_user_profile(user_profile, i):
+            if self.put_user_profile(user_profile, gen, i):
                 return
             else:
                 time.sleep(0.01)
 
-    def get_user_profile(self, cookie: str, i: int) -> Optional[UserProfile]:
+    def get_user_profile(self, cookie: str, i: int) -> Optional[(UserProfile, int)]:
         try:
             key = (self.namespace, self.set, cookie)
             t0 = time.time()
@@ -90,13 +90,13 @@ class MyAerospikeClient:
             res = UserProfile.parse_obj({"cookie": cookie, "buys": bs, "views": vs})
             t2 = time.time()
             #print(f"get_user_profile({i}) computation took {t2 - t1}s")
-            return res
+            return (res, meta["gen"])
         except aerospike.exception.RecordNotFound:
             return None  # new user
         except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
-    def put_user_profile(self, user_profile: UserProfile, i: int) -> bool:
+    def put_user_profile(self, user_profile: UserProfile, gen: int, i: int) -> bool:
         try:
             key = (self.namespace, self.set, user_profile.cookie)
             t0 = time.time()
@@ -107,7 +107,7 @@ class MyAerospikeClient:
             t1 = time.time()
             #print(f"put_user_profile({i}) computation took {t1 - t0}s")
             self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs},
-                            policy={"gen": aerospike.POLICY_GEN_EQ})
+                            policy={"gen": aerospike.POLICY_GEN_EQ}, meta={"gen": gen})
             t2 = time.time()
             #print(f"put_user_profile({i}) client.put took {t2 - t1}s")
             return True
