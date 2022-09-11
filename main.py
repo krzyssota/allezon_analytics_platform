@@ -109,7 +109,7 @@ async def delete_key(key: str):
 
 @app.get("/log_user_profile/{cookie}")
 async def get_user_profile(cookie: str):
-    user_profile = debug_client.get_user_profile(cookie)
+    user_profile = debug_client.get_user_profile(cookie, -1)
     logger.error(f"User profile {user_profile}")
     return Response(status_code=200)
 
