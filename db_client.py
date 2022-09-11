@@ -76,7 +76,7 @@ class MyAerospikeClient:
             else:
                 time.sleep(0.01)
 
-    def get_user_profile(self, cookie: str, i: int) -> Optional[(UserProfile, int)]:
+    def get_user_profile(self, cookie: str, i: int):
         try:
             key = (self.namespace, self.set, cookie)
             t0 = time.time()
