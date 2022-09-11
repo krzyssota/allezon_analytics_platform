@@ -1,3 +1,4 @@
+from datetime import datetime
 from queue import Queue
 from typing import Union
 from fastapi import FastAPI, Response
@@ -56,11 +57,23 @@ async def user_tags(user_tag: UserTag):
 
 @app.post("/user_profiles/{cookie}")
 async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None], limit: int = 200):
+    def filter_tags(tags, time_range):
+        time_start = time_range.split("_")[0]
+        time_end = time_range.split("_")[1]
+        date_format = "%Y-%m-%dT%H:%M:%S.%f"
+        ts = datetime.strptime(time_start, date_format)
+        te = datetime.strptime(time_end, date_format)
+        return [t for t in tags if ts <= t.time < te]
+
     user_profile = debug_client.get_user_profile(cookie, -1)
     if user_profile:
+        bs = filter_tags(user_profile.buys, time_range)
+        vs = filter_tags(user_profile.views, time_range)
+        user_profile.views = vs[:limit]
+        user_profile.buys = bs[:limit]
         return user_profile
     elif user_profile_result:
-        logger.warning(f"no UserProfile {user_profile.cookie}")
+        #logger.warning(f"no UserProfile {user_profile.cookie}")
         return user_profile_result
     else:
         logger.warning(f"no UserProfile {user_profile.cookie}")
