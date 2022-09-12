@@ -86,7 +86,7 @@ class MyAerospikeClient:
                 if len(user_profile.buys) == MAX_TAG_NUMBER:
                     user_profile.buys.pop(0)
                 user_profile.buys.append(user_tag)
-
+            # TODO assert that bs and vs are sorted
             if self.put_user_profile(user_profile, gen, i):
                 return
             else:

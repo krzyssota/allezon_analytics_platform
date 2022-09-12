@@ -14,6 +14,8 @@ WORKER_NUMBER = 4
 serve = False
 clients = []
 queue: Queue
+
+
 class Worker(Thread):
     queue: Queue
     client: MyAerospikeClient
@@ -43,6 +45,7 @@ for i in range(WORKER_NUMBER):
     w.daemon = True
     w.start()
 
+
 @app.on_event("shutdown")
 def shutdown():
     global serve
@@ -51,16 +54,17 @@ def shutdown():
         if c:
             c.close()
 
+
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
     global queue
     queue.put(user_tag)
     return Response(status_code=204)
 
+
 @app.post("/user_profiles/{cookie}")
-async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None, limit: int = 200):
-
-
+async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
+                        limit: int = 200):
     (user_profile, _) = debug_client.get_user_profile(cookie, -1)
     if user_profile:
         time_start = time_range.split("_")[0]
@@ -81,11 +85,22 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
             user_profile.buys = []
         else:
             user_profile.buys.reverse()
-        if (user_profile_result and user_profile != user_profile_result):
-            logger.error(f"diff\nup  {user_profile}\nupr {user_profile_result}")
+        if user_profile_result and user_profile != user_profile_result:
+            def as_json(up):
+                def objectify(tag):
+                    tag.time = str(tag.time)
+                    tag.action = tag.action.name
+                    tag.device = tag.device.name
+                    return vars(tag)
+
+                user_profile.views = list(map(lambda v: objectify(v), up.views))
+                user_profile.buys = list(map(lambda b: objectify(b), up.buys))
+                return vars(up)
+
+            logger.error(f"diff\nup  {as_json(user_profile)}\nupr {as_json(user_profile_result)}")
         return user_profile
     elif user_profile_result:
-        #logger.warning(f"no UserProfile {user_profile.cookie}")
+        # logger.warning(f"no UserProfile {user_profile.cookie}")
         return user_profile_result
     else:
         logger.warning(f"no UserProfile {cookie}")
@@ -95,15 +110,18 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
             "buys": [],
         }
 
+
 ###        DEBUG ENDPOINTS        ###
 @app.get("/ping")
 async def ping():
     return Response(status_code=200)
 
+
 @app.get("/log_all_records")
 async def log_all_records():
     debug_client.log_all_records()
     return Response(status_code=200)
+
 
 @app.get("/delete_key/{key}")
 async def delete_key(key: str):
@@ -113,11 +131,13 @@ async def delete_key(key: str):
         code = 400
     return Response(status_code=code)
 
+
 @app.get("/log_user_profile/{cookie}")
 async def get_user_profile(cookie: str):
     (user_profile, _) = debug_client.get_user_profile(cookie, -1)
     logger.error(f"User profile {user_profile}")
     return Response(status_code=200)
+
 
 @app.get("/delete_all_records")
 async def delete_all_records():
