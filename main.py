@@ -37,7 +37,7 @@ class Worker(Thread):
                 if not self.client.add_tag(tag):
                     self.queue.put((tag, attempt+1)) # try again
             else:
-                logger.error(f"Could not add tag {tag.cookie} for the third time")
+                logger.error(f"Could not add tag {tag.cookie} for the tenth time")
             self.queue.task_done()
 
 
