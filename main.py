@@ -26,8 +26,12 @@ class Worker(Thread):
     def run(self):
         global serve
         while serve:
-            tag: UserTag = self.queue.get(block=True)
-            self.client.add_tag(tag)
+            (tag, attempt) = self.queue.get(block=True)
+            if attempt <= 3:
+                if not self.client.add_tag(tag):
+                    self.queue.put((tag, attempt+1)) # try again
+            else:
+                logger.error(f"Could not add tag {tag.cookie} for the third time")
             self.queue.task_done()
 
 
@@ -54,7 +58,7 @@ def shutdown():
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
     global queue
-    queue.put(user_tag)
+    queue.put((user_tag, 1))
     return Response(status_code=204)
 
 
