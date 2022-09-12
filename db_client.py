@@ -103,7 +103,7 @@ class MyAerospikeClient:
             t2 = time.time()
             return res, meta["gen"]
         except aerospike.exception.RecordNotFound:
-            return None, 1  # new user
+            return None, 0  # new user
         except aerospike.exception.AerospikeError as e:
             print(f"error reading user_profile(%s) %s", cookie, e)
 
