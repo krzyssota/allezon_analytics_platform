@@ -23,13 +23,13 @@ class Worker(Thread):
         self.queue = queue
         self.client = client
 
-    def old_run(self):
+    def run(self):
         global serve
         while serve:
             tag: UserTag = self.queue.get(block=True)
             self.client.add_tag(tag)
             self.queue.task_done()
-    def run(self):
+    def new_run(self):
         global serve
         while serve:
             (tag, attempt) = self.queue.get(block=True)
