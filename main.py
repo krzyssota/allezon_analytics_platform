@@ -1,5 +1,5 @@
 from datetime import datetime
-from q import Queue
+from queue import Queue
 from typing import Union
 from fastapi import FastAPI, Response
 import logging
