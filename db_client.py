@@ -114,7 +114,8 @@ class MyAerospikeClient:
             ser_vs = serialize_tags(user_profile.views)
             comp_bs = snappy.compress(ser_bs)
             comp_vs = snappy.compress(ser_vs)
-            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs}, policy={"gen": aerospike.POLICY_GEN_EQ}, meta={"gen": gen})
+            write_policy = {"gen": aerospike.POLICY_GEN_EQ}
+            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs}, policy=write_policy, meta={"gen": gen})
             return True
         except aerospike.exception.RecordGenerationError:
             #print(f"{i + 1}. generation error while trying to write user profile for: {user_profile.cookie}")

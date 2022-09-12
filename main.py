@@ -23,11 +23,17 @@ class Worker(Thread):
         self.queue = queue
         self.client = client
 
+    def old_run(self):
+        global serve
+        while serve:
+            tag: UserTag = self.queue.get(block=True)
+            self.client.add_tag(tag)
+            self.queue.task_done()
     def run(self):
         global serve
         while serve:
             (tag, attempt) = self.queue.get(block=True)
-            if attempt <= 3:
+            if attempt <= 10:
                 if not self.client.add_tag(tag):
                     self.queue.put((tag, attempt+1)) # try again
             else:
