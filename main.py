@@ -56,13 +56,15 @@ def shutdown():
             c.close()
 
 
+# TODO try without threads
 @app.post("/user_tags")
-async def user_tags(user_tag: UserTag):
+def user_tags(user_tag: UserTag):
     global q
     q.put(user_tag)
     return Response(status_code=204)
 
 
+@app.post("/user_profiles/{cookie}")
 def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
                         limit: int = 200):
     (user_profile, _) = debug_client.get_user_profile(cookie, -1)
@@ -98,26 +100,27 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
             "views": [],
             "buys": [],
         }
-@app.post("/user_profiles/{cookie}")
-async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
+
+# @app.post("/user_profiles/{cookie}")
+async def async_user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
                         limit: int = 200):
     return await asyncify(sync_user_profile)(cookie, time_range, user_profile_result, limit)
 
 
 ###        DEBUG ENDPOINTS        ###
 @app.get("/ping")
-async def ping():
+def ping():
     return Response(status_code=200)
 
 
 @app.get("/log_all_records")
-async def log_all_records():
+def log_all_records():
     debug_client.log_all_records()
     return Response(status_code=200)
 
 
 @app.get("/delete_key/{key}")
-async def delete_key(key: str):
+def delete_key(key: str):
     if debug_client.delete_key(key):
         code = 200
     else:
@@ -126,14 +129,14 @@ async def delete_key(key: str):
 
 
 @app.get("/log_user_profile/{cookie}")
-async def get_user_profile(cookie: str):
+def get_user_profile(cookie: str):
     (user_profile, _) = debug_client.get_user_profile(cookie, -1)
     logger.error(f"User profile {user_profile}")
     return Response(status_code=200)
 
 
 @app.get("/delete_all_records")
-async def delete_all_records():
+def delete_all_records():
     debug_client.delete_all_records()
     return Response(status_code=200)
 
