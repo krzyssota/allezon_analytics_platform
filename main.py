@@ -1,5 +1,5 @@
 from datetime import datetime
-from queue import Queue
+from q import Queue
 from typing import Union
 from fastapi import FastAPI, Response
 import logging
@@ -10,14 +10,11 @@ from classes import UserTag, UserProfile
 from threading import Thread
 from db_client import MyAerospikeClient
 
-WORKER_NUMBER = 4
-serve = False
-clients = []
-queue: Queue
+TAGS_WORKER_NUMBER = 4
+REQS_WORKER_NUMBER = 1
 
-
-class Worker(Thread):
-    queue: Queue
+class TagsWorker(Thread):
+    q: Queue
     client: MyAerospikeClient
 
     def __init__(self, queue: Queue, client: MyAerospikeClient):
@@ -33,19 +30,42 @@ class Worker(Thread):
             self.queue.task_done()
 
 
+
+
+
 app = FastAPI()
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 debug_client = MyAerospikeClient()
-clients = [MyAerospikeClient() for _ in range(WORKER_NUMBER)]
-queue = Queue()
+clients = [MyAerospikeClient() for _ in range(TAGS_WORKER_NUMBER)]
+req_clients = [MyAerospikeClient() for _ in range(REQS_WORKER_NUMBER)]
+q = Queue()
+req_q = Queue()
 serve = True
-for i in range(WORKER_NUMBER):
-    w = Worker(queue, clients[i])
+for i in range(TAGS_WORKER_NUMBER):
+    w = TagsWorker(q, clients[i])
     w.daemon = True
     w.start()
 
 
+class ProfileRequestWorker(Thread):
+    q: Queue
+    client: MyAerospikeClient
+
+    def __init__(self, queue: Queue, client: MyAerospikeClient):
+        Thread.__init__(self)
+        self.queue = queue
+        self.client = client
+
+    @app.post("/halko")
+    def run(self):
+        logger.error(f"halkooooo")
+
+
+for i in range(REQS_WORKER_NUMBER):
+    req_w = ProfileRequestWorker(req_q, req_clients[i])
+    req_w.daemon = True
+    req_w.start()
 @app.on_event("shutdown")
 def shutdown():
     global serve
@@ -57,8 +77,8 @@ def shutdown():
 
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
-    global queue
-    queue.put(user_tag)
+    global q
+    q.put(user_tag)
     return Response(status_code=204)
 
 
