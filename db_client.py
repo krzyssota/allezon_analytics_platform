@@ -4,6 +4,7 @@ import time
 from snappy import snappy
 from classes import UserTag, UserProfile, Action
 from serde import deserialize_user_profile, serialize_user_profile, serialize_tags, deserialize_tags
+import aerospike
 
 MAX_TAG_NUMBER = 200
 
