@@ -101,7 +101,8 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
 @app.post("/user_profiles/{cookie}")
 async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
                         limit: int = 200):
-    return await asyncify(sync_user_profile)(cookie, time_range, user_profile_result, limit)
+    return user_profile_result
+    #return await asyncify(sync_user_profile)(cookie, time_range, user_profile_result, limit)
 
 
 ###        DEBUG ENDPOINTS        ###
