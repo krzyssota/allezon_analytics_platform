@@ -93,8 +93,8 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
                     tag.device = tag.device.name
                     return vars(tag)
 
-                user_profile.views = list(map(lambda v: objectify(v), up.views))
-                user_profile.buys = list(map(lambda b: objectify(b), up.buys))
+                up.views = list(map(lambda v: objectify(v), up.views))
+                up.buys = list(map(lambda b: objectify(b), up.buys))
                 return vars(up)
 
             logger.error(f"diff\nup  {as_json(user_profile)}\nupr {as_json(user_profile_result)}")

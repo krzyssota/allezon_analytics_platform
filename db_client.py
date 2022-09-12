@@ -11,6 +11,16 @@ from serde import deserialize_user_profile, serialize_user_profile, serialize_ta
 MAX_TAG_NUMBER = 200
 
 
+def as_json(up):  # TODO delete after debug
+    def objectify(tag):
+        tag.time = str(tag.time)
+        tag.action = tag.action.name
+        tag.device = tag.device.name
+        return vars(tag)
+
+    up.views = list(map(lambda v: objectify(v), up.views))
+    up.buys = list(map(lambda b: objectify(b), up.buys))
+    return vars(up)
 class MyAerospikeClient:
     namespace = "mimuw"
     set = "tags"
@@ -55,23 +65,6 @@ class MyAerospikeClient:
         except aerospike.exception.RecordError:
             self.logger.error("key to delete not found: %s", key)
             return False
-
-    def new_add_tag(self, user_tag: UserTag) -> bool:
-        (user_profile, gen) = self.get_user_profile(user_tag.cookie, -1)
-        if not user_profile:
-            user_profile = UserProfile.parse_obj({"cookie": user_tag.cookie, "buys": [], "views": []})
-
-        if user_tag.action == Action.VIEW:
-            if len(user_profile.views) == MAX_TAG_NUMBER:
-                user_profile.views.pop(0)
-            user_profile.views.append(user_tag)
-        else:
-            if len(user_profile.buys) == MAX_TAG_NUMBER:
-                user_profile.buys.pop(0)
-            user_profile.buys.append(user_tag)
-
-        return self.put_user_profile(user_profile, gen, -1)
-
     def add_tag(self, user_tag: UserTag):
         for i in range(3):
             (user_profile, gen) = self.get_user_profile(user_tag.cookie, i)
@@ -82,11 +75,18 @@ class MyAerospikeClient:
                 if len(user_profile.views) == MAX_TAG_NUMBER:
                     user_profile.views.pop(0)
                 user_profile.views.append(user_tag)
+                sorted_vs = sorted(user_profile.views, key=lambda t: t.time)
+                if sorted_vs != user_profile.views:
+                    print(f"{user_tag.cookie} views not sorted {as_json(user_profile)}")
+                    user_profile.views = sorted_vs
             else:
                 if len(user_profile.buys) == MAX_TAG_NUMBER:
                     user_profile.buys.pop(0)
                 user_profile.buys.append(user_tag)
-            # TODO assert that bs and vs are sorted
+                sorted_bs = sorted(user_profile.buys, key=lambda t: t.time)
+                if sorted_bs != user_profile.buys:
+                    print(f"{user_tag.cookie} buys not sorted {as_json(user_profile)}")
+                    user_profile.buys = sorted_bs
             if self.put_user_profile(user_profile, gen, i):
                 return
             else:
