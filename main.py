@@ -10,6 +10,8 @@ from classes import UserTag, UserProfile
 from threading import Thread
 from db_client import MyAerospikeClient
 
+from asyncer import asyncify
+
 TAGS_WORKER_NUMBER = 4
 REQS_WORKER_NUMBER = 1
 
@@ -33,7 +35,6 @@ class TagsWorker(Thread):
 
 
 
-app = FastAPI()
 logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 debug_client = MyAerospikeClient()
@@ -46,7 +47,7 @@ for i in range(TAGS_WORKER_NUMBER):
     w = TagsWorker(q, clients[i])
     w.daemon = True
     w.start()
-
+app = FastAPI()
 
 class ProfileRequestWorker(Thread):
     q: Queue
@@ -57,7 +58,7 @@ class ProfileRequestWorker(Thread):
         self.queue = queue
         self.client = client
 
-    @app.post("/halko")
+    @app.get("/halko")
     def run(self):
         logger.error(f"halkooooo")
 
@@ -82,8 +83,7 @@ async def user_tags(user_tag: UserTag):
     return Response(status_code=204)
 
 
-@app.post("/user_profiles/{cookie}")
-async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
+def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
                         limit: int = 200):
     (user_profile, _) = debug_client.get_user_profile(cookie, -1)
     if user_profile:
@@ -129,6 +129,10 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
             "views": [],
             "buys": [],
         }
+@app.post("/user_profiles/{cookie}")
+async def user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
+                        limit: int = 200):
+    return await asyncify(sync_user_profile)(cookie, time_range, user_profile_result, limit)
 
 
 ###        DEBUG ENDPOINTS        ###

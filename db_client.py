@@ -1,10 +1,7 @@
 import logging
 from typing import Optional
 import time
-import aerospike
-from aerospike_helpers.operations import operations as op_helpers
 from snappy import snappy
-
 from classes import UserTag, UserProfile, Action
 from serde import deserialize_user_profile, serialize_user_profile, serialize_tags, deserialize_tags
 
@@ -36,7 +33,7 @@ class MyAerospikeClient:
         }
     }
     logger = logging.getLogger()
-    client = aerospike.client(config)
+    client = aerospike.AerospikeClient(config)
 
     def __init__(self):
         self.logger.setLevel(logging.DEBUG)
