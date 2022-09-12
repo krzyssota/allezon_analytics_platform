@@ -57,20 +57,21 @@ class MyAerospikeClient:
             return False
 
     def new_add_tag(self, user_tag: UserTag) -> bool:
-            (user_profile, gen) = self.get_user_profile(user_tag.cookie, -1)
-            if not user_profile:
-                user_profile = UserProfile.parse_obj({"cookie": user_tag.cookie, "buys": [], "views": []})
+        (user_profile, gen) = self.get_user_profile(user_tag.cookie, -1)
+        if not user_profile:
+            user_profile = UserProfile.parse_obj({"cookie": user_tag.cookie, "buys": [], "views": []})
 
-            if user_tag.action == Action.VIEW:
-                if len(user_profile.views) == MAX_TAG_NUMBER:
-                    user_profile.views.pop(0)
-                user_profile.views.append(user_tag)
-            else:
-                if len(user_profile.buys) == MAX_TAG_NUMBER:
-                    user_profile.buys.pop(0)
-                user_profile.buys.append(user_tag)
+        if user_tag.action == Action.VIEW:
+            if len(user_profile.views) == MAX_TAG_NUMBER:
+                user_profile.views.pop(0)
+            user_profile.views.append(user_tag)
+        else:
+            if len(user_profile.buys) == MAX_TAG_NUMBER:
+                user_profile.buys.pop(0)
+            user_profile.buys.append(user_tag)
 
-            return self.put_user_profile(user_profile, gen, -1)
+        return self.put_user_profile(user_profile, gen, -1)
+
     def add_tag(self, user_tag: UserTag):
         for i in range(3):
             (user_profile, gen) = self.get_user_profile(user_tag.cookie, i)
@@ -91,7 +92,7 @@ class MyAerospikeClient:
             else:
                 continue
 
-    def get_user_profile(self, cookie: str, i: int):
+    def get_user_profile(self, cookie: str, i: int) -> (UserProfile, int):
         try:
             key = (self.namespace, self.set, cookie)
             (key, meta, bins_json) = self.client.get(key)
@@ -115,10 +116,11 @@ class MyAerospikeClient:
             comp_bs = snappy.compress(ser_bs)
             comp_vs = snappy.compress(ser_vs)
             write_policy = {"gen": aerospike.POLICY_GEN_EQ}
-            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs}, policy=write_policy, meta={"gen": gen})
+            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs},
+                            policy=write_policy, meta={"gen": gen})
             return True
         except aerospike.exception.RecordGenerationError:
-            #print(f"{i + 1}. generation error while trying to write user profile for: {user_profile.cookie}")
+            # print(f"{i + 1}. generation error while trying to write user profile for: {user_profile.cookie}")
             return False
         except aerospike.exception.AerospikeError as e:
             print(f"error writing user_profile(%s) %s", user_profile.cookie, e)
