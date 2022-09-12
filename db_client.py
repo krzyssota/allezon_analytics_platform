@@ -106,8 +106,8 @@ class MyAerospikeClient:
             comp_vs = snappy.compress(ser_vs)
             t1 = time.time()
             #print(f"put_user_profile({i}) computation took {t1 - t0}s")
-            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs})
-            #self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs}, policy={"gen": aerospike.POLICY_GEN_EQ}, meta={"gen": gen})
+            #self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs})
+            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs}, policy={"gen": aerospike.POLICY_GEN_EQ}, meta={"gen": gen})
             t2 = time.time()
             #print(f"put_user_profile({i}) client.put took {t2 - t1}s")
             return True
