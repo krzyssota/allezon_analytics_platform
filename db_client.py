@@ -64,6 +64,8 @@ class MyAerospikeClient:
             self.logger.error("key to delete not found: %s", key)
             return False
     def add_tag(self, user_tag: UserTag) -> bool:
+        print(f"halkooooo")
+
         for i in range(10):
             (user_profile, gen) = self.get_user_profile(user_tag.cookie, i)
             if not user_profile:
