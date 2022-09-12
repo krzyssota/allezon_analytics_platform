@@ -59,9 +59,12 @@ def shutdown():
 # TODO try without threads
 @app.post("/user_tags")
 def user_tags(user_tag: UserTag):
-    global q
-    q.put(user_tag)
-    return Response(status_code=204)
+    if debug_client.add_tag(user_tag):
+    #global q
+    #q.put(user_tag)
+        return Response(status_code=204)
+    else:
+        return Response(status_code=400)
 
 
 @app.post("/user_profiles/{cookie}")

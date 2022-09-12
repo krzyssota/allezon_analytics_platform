@@ -88,8 +88,9 @@ class MyAerospikeClient:
             if self.put_user_profile(user_profile, gen, i):
                 return True
             else:
+                print(f"{user_tag.cookie} couldn't add tag for the {i}. time: {user_tag}")
                 continue
-        print(f"{user_tag.cookie} couldn't add tag {user_tag}")
+        #print(f"{user_tag.cookie} couldn't add tag {user_tag}")
         return False
 
     def get_user_profile(self, cookie: str, i: int) -> (UserProfile, int):
