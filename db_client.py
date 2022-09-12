@@ -63,7 +63,7 @@ class MyAerospikeClient:
         except aerospike.exception.RecordError:
             self.logger.error("key to delete not found: %s", key)
             return False
-    def add_tag(self, user_tag: UserTag):
+    def add_tag(self, user_tag: UserTag) -> bool:
         for i in range(10):
             (user_profile, gen) = self.get_user_profile(user_tag.cookie, i)
             if not user_profile:
@@ -86,10 +86,11 @@ class MyAerospikeClient:
                 #    print(f"{user_tag.cookie} buys not sorted {(user_profile)}")
                 #    user_profile.buys = sorted_bs
             if self.put_user_profile(user_profile, gen, i):
-                return
+                return True
             else:
                 continue
         print(f"{user_tag.cookie} couldn't add tag {user_tag}")
+        return False
 
     def get_user_profile(self, cookie: str, i: int) -> (UserProfile, int):
         try:

@@ -58,7 +58,6 @@ def shutdown():
 
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
-    logger.error(f"halko error logger")
     global q
     q.put(user_tag)
     return Response(status_code=204)
