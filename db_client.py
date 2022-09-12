@@ -34,7 +34,7 @@ class MyAerospikeClient:
         }
     }
     logger = logging.getLogger()
-    client = aerospike.AerospikeClient(config)
+    client = aerospike.client(config)
 
     def __init__(self):
         self.logger.setLevel(logging.DEBUG)
