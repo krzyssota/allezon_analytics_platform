@@ -63,7 +63,6 @@ def shutdown():
 
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
-    logger.error(f"debug msg")
     global queue
     queue.put((user_tag, 1))
     return Response(status_code=204)
