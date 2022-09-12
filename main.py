@@ -33,11 +33,11 @@ class Worker(Thread):
         global serve
         while serve:
             (tag, attempt) = self.queue.get(block=True)
-            if attempt <= 10:
+            if attempt <= 3:
                 if not self.client.add_tag(tag):
                     self.queue.put((tag, attempt+1)) # try again
             else:
-                logger.error(f"Could not add tag {tag.cookie} for the tenth time")
+                logger.error(f"Could not add tag {tag.cookie} for the third time")
             self.queue.task_done()
 
 
@@ -84,6 +84,8 @@ async def user_profiles(cookie: str, time_range: str, user_profile_result: Union
 
         user_profile.views = vs[:limit]
         user_profile.buys = bs[:limit]
+        if (user_profile_result and user_profile != user_profile_result):
+            logger.error(f"diff\nup  {user_profile}\nupr {user_profile_result}")
         return user_profile
     elif user_profile_result:
         #logger.warning(f"no UserProfile {user_profile.cookie}")
