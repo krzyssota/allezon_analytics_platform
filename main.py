@@ -12,7 +12,7 @@ from db_client import MyAerospikeClient
 
 from asyncer import asyncify
 
-TAGS_WORKER_NUMBER = 4
+TAGS_WORKER_NUMBER = 1
 
 class TagsWorker(Thread):
     q: Queue
