@@ -12,7 +12,7 @@ from db_client import MyAerospikeClient
 
 from asyncer import asyncify
 
-TAGS_WORKER_NUMBER = 1
+TAGS_WORKER_NUMBER = 10
 
 class TagsWorker(Thread):
     q: Queue
@@ -27,7 +27,8 @@ class TagsWorker(Thread):
         global serve
         while serve:
             tag: UserTag = self.queue.get(block=True)
-            self.client.add_tag(tag)
+            if not self.client.add_tag(tag):
+                logger.error(f"{tag.cookie} couldn't add tag {tag}")
             self.queue.task_done()
 
 
@@ -57,6 +58,7 @@ def shutdown():
 
 @app.post("/user_tags")
 async def user_tags(user_tag: UserTag):
+    logger.error(f"halko error logger")
     global q
     q.put(user_tag)
     return Response(status_code=204)
@@ -85,17 +87,6 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
         else:
             user_profile.buys.reverse()
         if user_profile_result and user_profile != user_profile_result:
-            def as_json(up):
-                def objectify(tag):
-                    tag.time = str(tag.time)
-                    tag.action = tag.action.name
-                    tag.device = tag.device.name
-                    return vars(tag)
-
-                up.views = list(map(lambda v: objectify(v), up.views))
-                up.buys = list(map(lambda b: objectify(b), up.buys))
-                return vars(up)
-
             logger.error(f"diff\nup  {(user_profile)}\nupr {(user_profile_result)}")
         return user_profile
     elif user_profile_result:
