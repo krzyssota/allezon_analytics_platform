@@ -9,7 +9,7 @@ import aerospike
 MAX_TAG_NUMBER = 200
 
 
-def as_json(up):  # TODO delete after debug
+def as_json(up):  # BEWARE IT CHNAGES UP TODO delete after debug
     def objectify(tag):
         tag.time = str(tag.time)
         tag.action = tag.action.name
@@ -75,7 +75,7 @@ class MyAerospikeClient:
                 user_profile.views.append(user_tag)
                 sorted_vs = sorted(user_profile.views, key=lambda t: t.time)
                 if sorted_vs != user_profile.views:
-                    print(f"{user_tag.cookie} views not sorted {as_json(user_profile)}")
+                    print(f"{user_tag.cookie} views not sorted {(user_profile)}")
                     user_profile.views = sorted_vs
             else:
                 if len(user_profile.buys) == MAX_TAG_NUMBER:
@@ -83,7 +83,7 @@ class MyAerospikeClient:
                 user_profile.buys.append(user_tag)
                 sorted_bs = sorted(user_profile.buys, key=lambda t: t.time)
                 if sorted_bs != user_profile.buys:
-                    print(f"{user_tag.cookie} buys not sorted {as_json(user_profile)}")
+                    print(f"{user_tag.cookie} buys not sorted {(user_profile)}")
                     user_profile.buys = sorted_bs
             if self.put_user_profile(user_profile, gen, i):
                 return

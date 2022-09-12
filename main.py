@@ -13,7 +13,6 @@ from db_client import MyAerospikeClient
 from asyncer import asyncify
 
 TAGS_WORKER_NUMBER = 4
-REQS_WORKER_NUMBER = 1
 
 class TagsWorker(Thread):
     q: Queue
@@ -39,9 +38,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.DEBUG)
 debug_client = MyAerospikeClient()
 clients = [MyAerospikeClient() for _ in range(TAGS_WORKER_NUMBER)]
-req_clients = [MyAerospikeClient() for _ in range(REQS_WORKER_NUMBER)]
 q = Queue()
-req_q = Queue()
 serve = True
 for i in range(TAGS_WORKER_NUMBER):
     w = TagsWorker(q, clients[i])
@@ -49,24 +46,6 @@ for i in range(TAGS_WORKER_NUMBER):
     w.start()
 app = FastAPI()
 
-class ProfileRequestWorker(Thread):
-    q: Queue
-    client: MyAerospikeClient
-
-    def __init__(self, queue: Queue, client: MyAerospikeClient):
-        Thread.__init__(self)
-        self.queue = queue
-        self.client = client
-
-    @app.get("/halko")
-    def run(self):
-        logger.error(f"halkooooo")
-
-
-for i in range(REQS_WORKER_NUMBER):
-    req_w = ProfileRequestWorker(req_q, req_clients[i])
-    req_w.daemon = True
-    req_w.start()
 @app.on_event("shutdown")
 def shutdown():
     global serve
@@ -117,7 +96,7 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
                 up.buys = list(map(lambda b: objectify(b), up.buys))
                 return vars(up)
 
-            logger.error(f"diff\nup  {as_json(user_profile)}\nupr {as_json(user_profile_result)}")
+            logger.error(f"diff\nup  {(user_profile)}\nupr {(user_profile_result)}")
         return user_profile
     elif user_profile_result:
         # logger.warning(f"no UserProfile {user_profile.cookie}")
