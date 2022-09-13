@@ -81,10 +81,10 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
         user_profile.buys = bs[:limit]
         if user_profile.views is None:
             user_profile.views = []
-        # user_profile.views.reverse() # TODO bring back reverse
+        user_profile.views.reverse()
         if user_profile.buys is None:
             user_profile.buys = []
-        # user_profile.buys.reverse()
+        user_profile.buys.reverse()
         if user_profile_result and user_profile != user_profile_result:
             logger.error(f"diff\nup  {(user_profile)}\nupr {(user_profile_result)}")
         return user_profile

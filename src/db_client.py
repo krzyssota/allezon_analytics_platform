@@ -5,7 +5,6 @@ from snappy import snappy
 from classes import UserTag, UserProfile, Action
 from serde import serialize_tags, deserialize_tags
 import aerospike
-import aerospike
 from aerospike_helpers.operations import operations as op_helpers
 
 MAX_TAG_NUMBER = 200
