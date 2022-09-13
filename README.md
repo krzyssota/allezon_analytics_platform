@@ -1,6 +1,7 @@
 Allezon Analytics Platform
 ==========================
 # Solution description
+**Only use case 1 and 2 is implemented.**
 
 ## Architecture overview
 
@@ -13,20 +14,20 @@ Placement of different components on virtual machines is as follows:
 
 ## Server
 Server is a FastAPI application running on internal asynchronous thread pool consisting of 4 threads. Actual number of threads available on the vms is 2, so I picked number just a bit larger.
-User profiles are stored in a serialized format (for serialization details refer to src/serde.py)in a bin with 'cookie', 'buys' and 'views' keys (exact schema is in the src/classes.py file). Eventually I decided to get rid of snappy compression of the tags, due to performance reason (we have plenty of space, computation is a bottleneck here).
+User profiles are stored in a serialized format (for serialization details refer to src/serde.py)in a bin with 'cookie', 'buys' and 'views' keys (exact schema is in the src/classes.py file). Eventually I decided to get rid of snappy compression of the tags, due to performance reasons (we have plenty of space, computation is a bottleneck here).
 When the user profile is queried, tags are sorted, as with multithread writes we can end up with partially unordered tags. There are only 200 of them, so it doesn't take long.
 When user tag is added, we start a transaction utilizing POLICY_GEN_EQ write policy. If during the transaction the user profile was modified we start again. This can happen up to 3 times (didn't happen during tests). (based on https://aerospike.com/blog/developers-understanding-aerospike-transactions)
 
 ## Load balancer
 Load balancer is a HAProxy instance running in a Docker container on vm107. The configuration (lb/haproxy.cfg) has hostnames of 3 front-end servers.
 ```
-...
+[...]
 backend app_server
         balance roundrobin
         server app_101 st109vm101.rtb-lab.pl:8088
         server app_102 st109vm102.rtb-lab.pl:8088
         server app_109 st109vm109.rtb-lab.pl:8088
-...
+[...]
 ```
 Traffic from WebPanel is redirected through load balanced binded on st109vm107.rtb-lab.pl:9000. The solution was based on lab03 (github.com/RTBHOUSE/mimuw-lab/tree/main/lab03)
 
@@ -34,6 +35,7 @@ Traffic from WebPanel is redirected through load balanced binded on st109vm107.r
 Database is a Aerospike cluster consisting of 5 nodes connected in a mesh. Each node has almost the same config file - own IP address is different.
 Each node has 16GB of space available (which is more than enough for the task, from the aerospike stats I estimate it would last for months), doesn't keep data in memory (performance reasons) and doesn't replicate data (again performance reasons, but I am aware that this means data can be lost in case of a node failure).
 ```
+[...]
 namespace mimuw {
 	replication-factor 1
 	memory-size 4G
@@ -59,7 +61,7 @@ The best score I got was ~417.
 Each component has appropriate script for deployment (aerospike/install_aerospike, lb/run_lb, ./run_server). aerospike directory also has Aerospike sources archived to ensure version compatibility.
 
 
-==========================
+=======================================================================
 
 # Task description
 
