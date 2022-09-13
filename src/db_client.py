@@ -97,6 +97,8 @@ class MyAerospikeClient:
     def get_user_profile(self, cookie: str, i: int) -> (UserProfile, int):
         try:
             key = (self.namespace, self.set, cookie)
+            if not self.client.is_connected():
+                self.client.connect()
             (key, meta, bins_json) = self.client.get(key)
             ser_bs = snappy.decompress(bins_json["buys"]).decode("utf-8")
             ser_vs = snappy.decompress(bins_json["views"]).decode("utf-8")
@@ -117,6 +119,8 @@ class MyAerospikeClient:
             comp_bs = snappy.compress(ser_bs)
             comp_vs = snappy.compress(ser_vs)
             write_policy = {"gen": aerospike.POLICY_GEN_EQ}
+            if not self.client.is_connected():
+                self.client.connect()
             self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs},
                             policy=write_policy, meta={"gen": gen})
             return True

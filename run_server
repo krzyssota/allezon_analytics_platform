@@ -7,4 +7,4 @@ echo "3. Fill in appropriate public ip address of this machine in line 10 in thi
 #pip install aerospike
 #pip install -r requirements.txt
 #cd src
-#./../env/bin/python3 -m uvicorn main:app --host 10.112.109.*** --port 8088 --workers 4
+#./../env/bin/python3 -m uvicorn main:app --host 10.112.109.*** --port 8088 --workers 10
