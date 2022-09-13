@@ -3,7 +3,6 @@ echo "1. Install: '$ sudo apt install python3.8-venv' and create virtual env: '$
 echo "2. Comment these echos, uncomment lines below"
 echo "3. Fill in appropriate public ip address of this machine in line 10 in this script."
 #source env/bin/activate
-#git pull
 #sudo apt install python3-pip
 #pip install aerospike
 #pip install -r requirements.txt
