@@ -2,7 +2,7 @@ Allezon Analytics Platform
 ==========================
 # Solution
 vm101, vm102, vm109 - servers
-vm103-106, vm109 - aerospike nodes
+vm103-106, vm108 - aerospike nodes
 vm107 - load balancer
 
 # Overview
