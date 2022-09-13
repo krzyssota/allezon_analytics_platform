@@ -13,7 +13,7 @@ Placement of different components on virtual machines is as follows:
 * load balancer: vm107
 
 ## Server
-Server is a FastAPI application running on internal asynchronous thread pool consisting of 4 threads. Actual number of threads available on the vms is 2, so I picked number just a bit larger.
+Server is a FastAPI application (src/main.py) running on internal asynchronous thread pool consisting of 4 threads. Actual number of threads available on the vms is 2, so I picked number just a bit larger.
 User profiles are stored in a serialized format (for serialization details refer to src/serde.py)in a bin with 'cookie', 'buys' and 'views' keys (exact schema is in the src/classes.py file). Eventually I decided to get rid of snappy compression of the tags, due to performance reasons (we have plenty of space, computation is a bottleneck here).
 When the user profile is queried, tags are sorted, as with multithread writes we can end up with partially unordered tags. There are only 200 of them, so it doesn't take long.
 When user tag is added, we start a transaction utilizing POLICY_GEN_EQ write policy. If during the transaction the user profile was modified we start again. This can happen up to 3 times (didn't happen during tests). (based on https://aerospike.com/blog/developers-understanding-aerospike-transactions)
