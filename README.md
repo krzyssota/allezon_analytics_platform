@@ -33,7 +33,7 @@ Traffic from WebPanel is redirected through load balanced binded on st109vm107.r
 
 ## Database
 Database is a Aerospike cluster consisting of 5 nodes connected in a mesh. Each node has almost the same config file - own IP address is different.
-Each node has 16GB of space available (which is more than enough for the task, from the aerospike stats I estimate it would last for months), doesn't keep data in memory (performance reasons) and doesn't replicate data (again performance reasons, but I am aware that this means data can be lost in case of a node failure).
+Each node has 16GB of space available (which is more than enough for the task, as the is a limit on storage numer_of_cookies * 400 * tag_length), doesn't keep data in memory (performance reasons) and doesn't replicate data (again performance reasons, but I am aware that this means data can be lost in case of a node failure).
 ```
 [...]
 namespace mimuw {
