@@ -12,7 +12,7 @@ from db_client import MyAerospikeClient
 
 from asyncer import asyncify
 
-TAGS_WORKER_NUMBER = 10
+TAGS_WORKER_NUMBER = 4
 
 class TagsWorker(Thread):
     q: Queue
@@ -56,15 +56,16 @@ def shutdown():
             c.close()
 
 
-# TODO try without threads
+# TODO decide whether to use threads
 @app.post("/user_tags")
 def user_tags(user_tag: UserTag):
-    if debug_client.add_tag(user_tag):
-    #global q
-    #q.put(user_tag)
-        return Response(status_code=204)
-    else:
-        return Response(status_code=400)
+    global q
+    q.put(user_tag)
+    return Response(status_code=204)
+    #if debug_client.add_tag(user_tag):
+    #    return Response(status_code=204)
+    #else:
+    #    return Response(status_code=400)
 
 
 @app.post("/user_profiles/{cookie}")
