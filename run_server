@@ -1,10 +1,11 @@
 #!/usr/bin/bash
-echo "1. Create virtual env: $ python3 -m venv env"
+echo "1. Install: '$ sudo apt install python3.8-venv' and create virtual env: '$ python3 -m venv env'"
 echo "2. Comment these echos, uncomment lines below"
 echo "3. Fill in appropriate public ip address of this machine in line 10 in this script."
 #source env/bin/activate
 #git pull
+#sudo apt install python3-pip
 #pip install aerospike
 #pip install -r requirements.txt
 #cd src
-#env/bin/python3 -m uvicorn main:app --host 10.112.109.*** --port 8088
+#./../env/bin/python3 -m uvicorn main:app --host 10.112.109.*** --port 8088
