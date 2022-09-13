@@ -1,5 +1,7 @@
 #!/usr/bin/bash
-echo "1. Create virtual env: $ python3 -m venv env \n2. Comment this echo, uncomment the rest \n3. Fill in appropriate public ip address of this machine in line 8 in this script."
+echo "1. Create virtual env: $ python3 -m venv env"
+echo "2. Comment these echos, uncomment lines below"
+echo "3. Fill in appropriate public ip address of this machine in line 10 in this script."
 #source env/bin/activate
 #git pull
 #pip install aerospike
