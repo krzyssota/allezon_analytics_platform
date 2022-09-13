@@ -1,63 +1,25 @@
 from datetime import datetime
-from queue import Queue
 from typing import Union
 from fastapi import FastAPI, Response
 import logging
-
 from pytz import utc
-
 from classes import UserTag, UserProfile
-from threading import Thread
 from db_client import MyAerospikeClient
 
-from asyncer import asyncify
-
-TAGS_WORKER_NUMBER = 4
-
-class TagsWorker(Thread):
-    q: Queue
-    client: MyAerospikeClient
-
-    def __init__(self, queue: Queue, client: MyAerospikeClient):
-        Thread.__init__(self)
-        self.queue = queue
-        self.client = client
-
-    def run(self):
-        global serve
-        while serve:
-            tag: UserTag = self.queue.get(block=True)
-            if not self.client.add_tag(tag):
-                logger.error(f"{tag.cookie} couldn't add tag {tag}")
-            self.queue.task_done()
-
-
-
-
-
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
-debug_client = MyAerospikeClient()
-clients = [MyAerospikeClient() for _ in range(TAGS_WORKER_NUMBER)]
-q = Queue()
-serve = True
-for i in range(TAGS_WORKER_NUMBER):
-    w = TagsWorker(q, clients[i])
-    w.daemon = True
-    w.start()
+logger.setLevel(logging.ERROR)
+db_client = MyAerospikeClient()
 app = FastAPI()
+
 
 @app.on_event("shutdown")
 def shutdown():
-    global serve
-    serve = False
-    for c in clients:
-        if c:
-            c.close()
+    db_client.close()
+
 
 @app.post("/user_tags")
-def user_tags(user_tag: UserTag):
-    if debug_client.add_tag(user_tag):
+def handle_user_tags(user_tag: UserTag):
+    if db_client.add_tag(user_tag):
         return Response(status_code=204)
     else:
         logger.error(f"{user_tag.cookie} couldn't add tag {user_tag}")
@@ -65,18 +27,19 @@ def user_tags(user_tag: UserTag):
 
 
 @app.post("/user_profiles/{cookie}")
-def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
-                        limit: int = 200):
-    (user_profile, _) = debug_client.get_user_profile(cookie, -1)
+def handle_user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
+                 limit: int = 200):
+    (user_profile, _) = db_client.get_user_profile(cookie)
     if user_profile:
+        # parsing range
         time_start = time_range.split("_")[0]
         time_end = time_range.split("_")[1]
         date_format = "%Y-%m-%dT%H:%M:%S.%f"
         ts = utc.localize(datetime.strptime(time_start, date_format))
         te = utc.localize(datetime.strptime(time_end, date_format))
+        # filter
         bs = [tag for tag in user_profile.buys if ts <= tag.time < te]
         vs = [tag for tag in user_profile.views if ts <= tag.time < te]
-
         user_profile.views = vs[:limit]
         user_profile.buys = bs[:limit]
         if user_profile.views is None:
@@ -86,52 +49,26 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
             user_profile.buys = []
         user_profile.buys.reverse()
         if user_profile_result and user_profile != user_profile_result:
-            logger.error(f"diff\nup  {(user_profile)}\nupr {(user_profile_result)}")
+            logger.error(
+                f"Difference between my user profile and expected result\nMine: {user_profile}\nExpected: {user_profile_result}")
         return user_profile
-    else: # new user
+    else:  # new user
         return {
             "cookie": cookie,
             "views": [],
             "buys": [],
         }
 
-# @app.post("/user_profiles/{cookie}")
-async def async_user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
-                        limit: int = 200):
-    return await asyncify(sync_user_profile)(cookie, time_range, user_profile_result, limit)
 
-
-###        DEBUG ENDPOINTS        ###
+#          DEVELOPMENT        #
 @app.get("/ping")
 def ping():
     return Response(status_code=200)
 
 
-@app.get("/log_all_records")
-def log_all_records():
-    debug_client.log_all_records()
-    return Response(status_code=200)
-
-
-@app.get("/delete_key/{key}")
-def delete_key(key: str):
-    if debug_client.delete_key(key):
-        code = 200
-    else:
-        code = 400
-    return Response(status_code=code)
-
-
-@app.get("/log_user_profile/{cookie}")
-def get_user_profile(cookie: str):
-    (user_profile, _) = debug_client.get_user_profile(cookie, -1)
-    logger.error(f"User profile {user_profile}")
-    return Response(status_code=200)
-
-
 @app.get("/delete_all_records")
 def delete_all_records():
-    debug_client.delete_all_records()
+    db_client.delete_all_records()
     return Response(status_code=200)
 
-###    --------------------------    ###
+#      ----------------       #

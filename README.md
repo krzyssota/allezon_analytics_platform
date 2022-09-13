@@ -1,14 +1,67 @@
 Allezon Analytics Platform
 ==========================
-# Solution
-vm101, vm102, vm109 - servers
-vm103-106, vm108 - aerospike nodes
-vm107 - load balancer
+# Solution description
 
+## Architecture overview
+
+My solution consists of three front-end FastAPI servers, handling traffic which is balanced by a HAProxy instance running in a Docker container.
+Data is stored in five Aerospike nodes.
+Placement of different components on virtual machines is as follows:
+* front-end servers: vm101, vm102, vm109
+* aerospike nodes: vm103-106, vm108
+* load balancer: vm107
+
+## Server
+Server is a FastAPI application running on internal asynchronous thread pool consisting of 4 threads. Actual number of threads available on the vms is 2, so I picked number just a bit larger.
+User profiles are stored in a serialized format in a bin with 'cookie', 'buys' and 'views' keys (exact schema is in the src/classes.py file). Eventually I decided to get rid of snappy compression of the tags, due to performance reason (we have plenty of space, computation is a bottleneck here).
+When the user profile is queried, tags are sorted, as with multithread writes we can end up with partially unordered tags. There are only 200 of them, so it doesn't take long.
+When user tag is added, we start a transaction utilizing POLICY_GEN_EQ write policy. If during the transaction the user profile was modified we start again. This can happen up to 3 times (didn't happen during tests).
+
+## Load balancer
+Load balancer is a HAProxy instance running in a Docker container on vm107. The configuration (lb/haproxy.cfg) has hostnames of 3 front-end servers.
+```
+...
+backend app_server
+        balance roundrobin
+        server app_101 st109vm101.rtb-lab.pl:8088
+        server app_102 st109vm102.rtb-lab.pl:8088
+        server app_109 st109vm109.rtb-lab.pl:8088
+...
+```
+Traffic from WebPanel is redirected through st109vm107.rtb-lab.pl.
+
+## Database
+Database is a Aerospike cluster consisting of 5 nodes connected in a mesh. Each node has almost the same config file (own IP address is different).
+Each node has 16GB of space available (which is more than enough for the task, from the aerospike stats I estimate it would last for months), doesn't keep data in memory (performance reasons) and doesn't replicate data (again performance reasons, but I am aware that this means data can be lost in case of a node failure).
+```
+namespace mimuw {
+	replication-factor 1
+	memory-size 4G
+        nsup-period 30
+
+	storage-engine device {
+		file /opt/aerospike/data/mimuw.dat
+		filesize 16G
+		data-in-memory false # Store data in memory in addition to file.
+		defrag-lwm-pct 90
+    	defrag-sleep 50
+	}
+}
+```
+
+## Performance
+Handling 1000 user_tag and 200 user_profile req/s was very challenging. Having 3 servers with asynchronous thread pool and 5 available database nodes deemed not enough.
+To be honest I don't see where I could make improvements. I tried many different configurations, but the best I got was almost an hour (>3 mln tags) of correct responses without timeouts. After this time user_tag read timeouts start which also affect user_profile requests.
+The best score I got was ~417.
+
+
+## Deployment
 
 https://aerospike.com/blog/developers-understanding-aerospike-transactions/
 
-# Overview
+==========================
+
+# Task description
 
 We are going to create a data-collection and analytics platform for a big online retailer Allezon. Users' actions on the Allezon site are sent to us as VIEW and BUY events containing information about the user and the product they interacted with. In order to solve Allezon's business use cases our platform has to collect these data and provide endpoints answering specific queries.
 

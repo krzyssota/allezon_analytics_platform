@@ -1,4 +1,4 @@
-from classes import UserTag, UserProfile
+from classes import UserTag
 from typing import List
 
 
@@ -13,13 +13,6 @@ def serialize_tags(tags: List[UserTag]) -> str:
     return "^".join(list(map(lambda t: serialize_tag(t), tags)))
 
 
-def deserialize_tags(ser_tags: str) -> List[UserTag]:
-    sts = ser_tags.split("^")
-    if sts == [""]:
-        return []
-    return list(map(lambda st: deserialize_tag(st), sts))
-
-
 def deserialize_tag(ser_tag: str) -> UserTag:
     ss = ser_tag.split("|")
     if ser_tag == "":
@@ -30,14 +23,8 @@ def deserialize_tag(ser_tag: str) -> UserTag:
     return UserTag.parse_obj(ut_obj)
 
 
-def serialize_user_profile(user_profile: UserProfile) -> str:
-    return user_profile.cookie + "@" + serialize_tags(user_profile.buys) + "@" + serialize_tags(user_profile.views)
-
-
-def deserialize_user_profile(ser_user_profile: str) -> UserProfile:
-    ss = ser_user_profile.split('@')
-
-    bs = deserialize_tags(ss[1])
-    vs = deserialize_tags(ss[2])
-    up_obj = {"cookie": ss[0], "buys": bs, "views": vs}
-    return UserProfile.parse_obj(up_obj)
+def deserialize_tags(ser_tags: str) -> List[UserTag]:
+    sts = ser_tags.split("^")
+    if sts == [""]:
+        return []
+    return list(map(lambda st: deserialize_tag(st), sts))
