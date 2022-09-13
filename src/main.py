@@ -88,11 +88,7 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
         if user_profile_result and user_profile != user_profile_result:
             logger.error(f"diff\nup  {(user_profile)}\nupr {(user_profile_result)}")
         return user_profile
-    elif user_profile_result:
-        # logger.warning(f"no UserProfile {user_profile.cookie}")
-        return user_profile_result
-    else:
-        logger.warning(f"no UserProfile {cookie}")
+    else: # new user
         return {
             "cookie": cookie,
             "views": [],

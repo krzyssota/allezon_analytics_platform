@@ -45,19 +45,6 @@ class MyAerospikeClient:
     def delete_all_records(self):
         self.client.truncate(self.namespace, self.set, 0)
 
-    def log_all_records(self):
-        def print_result(record_tuple):
-            key, metadata, record = record_tuple
-            ser_bs = snappy.decompress(record["buys"]).decode("utf-8")
-            ser_vs = snappy.decompress(record["views"]).decode("utf-8")
-            bs = deserialize_tags(ser_bs)
-            vs = deserialize_tags(ser_vs)
-            up = UserProfile.parse_obj({"cookie": record["cookie"], "buys": bs, "views": vs})
-            print(f"print scan result {up}")
-
-        scan = self.client.scan(self.namespace)
-        scan.foreach(print_result)
-
     def delete_key(self, key: str) -> bool:
         try:
             self.client.remove((self.namespace, self.set, key))
