@@ -55,16 +55,12 @@ def shutdown():
         if c:
             c.close()
 
-
-# TODO decide whether to use threads
 @app.post("/user_tags")
 def user_tags(user_tag: UserTag):
-    #global q
-    #q.put(user_tag)
-    #return Response(status_code=204)
     if debug_client.add_tag(user_tag):
         return Response(status_code=204)
     else:
+        logger.error(f"{user_tag.cookie} couldn't add tag {user_tag}")
         return Response(status_code=400)
 
 
@@ -85,12 +81,10 @@ def sync_user_profile(cookie: str, time_range: str, user_profile_result: Union[U
         user_profile.buys = bs[:limit]
         if user_profile.views is None:
             user_profile.views = []
-        else:
-            user_profile.views.reverse()
+        # user_profile.views.reverse() # TODO bring back reverse
         if user_profile.buys is None:
             user_profile.buys = []
-        else:
-            user_profile.buys.reverse()
+        # user_profile.buys.reverse()
         if user_profile_result and user_profile != user_profile_result:
             logger.error(f"diff\nup  {(user_profile)}\nupr {(user_profile_result)}")
         return user_profile

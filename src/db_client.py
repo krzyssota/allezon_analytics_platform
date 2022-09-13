@@ -3,8 +3,10 @@ from typing import Optional
 import time
 from snappy import snappy
 from classes import UserTag, UserProfile, Action
-from serde import deserialize_user_profile, serialize_user_profile, serialize_tags, deserialize_tags
+from serde import serialize_tags, deserialize_tags
 import aerospike
+import aerospike
+from aerospike_helpers.operations import operations as op_helpers
 
 MAX_TAG_NUMBER = 200
 
@@ -100,8 +102,8 @@ class MyAerospikeClient:
             if not self.client.is_connected():
                 self.client.connect()
             (key, meta, bins_json) = self.client.get(key)
-            ser_bs = snappy.decompress(bins_json["buys"]).decode("utf-8")
-            ser_vs = snappy.decompress(bins_json["views"]).decode("utf-8")
+            ser_bs = bins_json["buys"] # = snappy.decompress(bins_json["buys"]).decode("utf-8") # TODO decide what to do with compression
+            ser_vs = bins_json["views"] # = snappy.decompress(bins_json["views"]).decode("utf-8") # TODO decide what to do with compression
             bs = deserialize_tags(ser_bs)
             vs = deserialize_tags(ser_vs)
             res = UserProfile.parse_obj({"cookie": cookie, "buys": bs, "views": vs})
@@ -116,13 +118,19 @@ class MyAerospikeClient:
             key = (self.namespace, self.set, user_profile.cookie)
             ser_bs = serialize_tags(user_profile.buys)
             ser_vs = serialize_tags(user_profile.views)
-            comp_bs = snappy.compress(ser_bs)
-            comp_vs = snappy.compress(ser_vs)
+            comp_bs = ser_bs # = snappy.compress(ser_bs)  # TODO decide what to do with compression
+            comp_vs = ser_vs # = snappy.compress(ser_vs)  # TODO decide what to do with compression
             write_policy = {"gen": aerospike.POLICY_GEN_EQ}
+            ops = [
+                op_helpers.write("cookie", user_profile.cookie),
+                op_helpers.write("buys", comp_bs),
+                op_helpers.write("views", comp_vs)
+            ]
             if not self.client.is_connected():
                 self.client.connect()
-            self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs},
-                            policy=write_policy, meta={"gen": gen})
+            self.client.operate(key, ops, policy=write_policy, meta={"gen": gen})
+            #self.client.put(key, {"cookie": user_profile.cookie, "buys": comp_bs, "views": comp_vs},
+            #                policy=write_policy, meta={"gen": gen})
             return True
         except aerospike.exception.RecordGenerationError:
             # print(f"{i + 1}. generation error while trying to write user profile for: {user_profile.cookie}")

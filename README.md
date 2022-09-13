@@ -5,6 +5,9 @@ vm101, vm102, vm109 - servers
 vm103-106, vm108 - aerospike nodes
 vm107 - load balancer
 
+
+https://aerospike.com/blog/developers-understanding-aerospike-transactions/
+
 # Overview
 
 We are going to create a data-collection and analytics platform for a big online retailer Allezon. Users' actions on the Allezon site are sent to us as VIEW and BUY events containing information about the user and the product they interacted with. In order to solve Allezon's business use cases our platform has to collect these data and provide endpoints answering specific queries.
