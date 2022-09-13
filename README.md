@@ -53,7 +53,7 @@ namespace mimuw {
 
 ## Performance
 Handling 1000 user_tag and 200 user_profile req/s was very challenging. Having 3 servers with asynchronous thread pool and 5 available database nodes deemed not enough.
-To be honest I don't see where I could make improvements. I tried many different configurations, but the best I got was almost an hour (>3 mln tags) of correct responses without timeouts. After this time user_tag read timeouts start which also affect user_profile requests.
+To be honest I don't see where I could make improvements. I tried many different configurations (number of servers/db nodes, aerospike configuration, number of threads, using python multithread and async library instead of mechanism provided by fastapi), but the best I got was almost an hour (>3 mln tags) of correct responses without timeouts. After this time user_tag read timeouts start which also affect user_profile requests.
 The best score I got was ~417.
 
 
