@@ -1,0 +1,8 @@
+#!/usr/bin/sh
+tar xzvf /home/st109/allezon_analytics_platform/aerospike/aerospike.tgz
+sudo ./home/st109/allezon_analytics_platform/aerospike/aerospike-server-community-5.7.0.16-ubuntu20.04/asinstall
+sudo mkdir /var/log/aerospike
+echo "Fill in appropriate public ip address of this machine in line 17 and 23 in aerospike.conf"
+sleep 1
+nano /home/st109/allezon_analytics_platform/aerospike/aerospike.conf
+sudo cp /home/st109/allezon_analytics_platform/aerospike/aerospike.conf /etc/aerospike

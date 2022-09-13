@@ -1,0 +1,8 @@
+#!/usr/bin/bash
+echo "Comment this echo, uncomment the rest and fill in appropriate public ip address of this machine in line 8 in this script."
+#source env/bin/activate
+#git pull
+#pip install aerospike
+#pip install -r requirements.txt
+#cd src
+#env/bin/python3 -m uvicorn main:app --host 10.112.109.*** --port 8088
