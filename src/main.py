@@ -18,6 +18,10 @@ def shutdown():
 
 
 @app.post("/user_tags")
+def dummy_user_tags(user_tag: UserTag):
+    return Response(status_code=204)
+
+
 def handle_user_tags(user_tag: UserTag):
     if db_client.add_tag(user_tag):
         return Response(status_code=204)
@@ -27,8 +31,12 @@ def handle_user_tags(user_tag: UserTag):
 
 
 @app.post("/user_profiles/{cookie}")
+def dummy_user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
+                         limit: int = 200):
+    return user_profile_result
+
 def handle_user_profiles(cookie: str, time_range: str, user_profile_result: Union[UserProfile, None] = None,
-                 limit: int = 200):
+                         limit: int = 200):
     (user_profile, _) = db_client.get_user_profile(cookie)
     if user_profile:
         # parsing range
