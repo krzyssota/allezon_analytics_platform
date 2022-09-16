@@ -8,3 +8,4 @@ echo "3. Fill in the appropriate ip address of this machine in line 10 of this s
 #pip install -r requirements.txt
 #cd src
 #./../env/bin/python3 -m uvicorn main:app --host 10.112.109.*** --port 8088 --workers 4
+
