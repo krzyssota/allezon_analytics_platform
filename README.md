@@ -1,7 +1,7 @@
 Allezon Analytics Platform
 ==========================
 # Solution description
-**Only use case 1 and 2 is implemented.**
+**Only use case 1 and 2 are implemented.**
 
 ## Architecture overview
 
